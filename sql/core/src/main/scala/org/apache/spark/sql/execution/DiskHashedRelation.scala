@@ -63,7 +63,31 @@ private[sql] class DiskPartition (
    * @param row the [[Row]] we are adding
    */
   def insert(row: Row) = {
-    // IMPLEMENT ME
+    //first, inputClosed must be false because you can't write to a closed partition
+    //see closeInput()
+    if(inputClosed)
+    {
+    	throw new SparkException("Can't insert into closed partition!")
+    }
+    //find if the size of the partition exceeds the blockSize
+    //first, find the size of the partition
+    //use a temporary array to find size so we don't insert too big data by accident
+    val spill: JavaArrayList[Row] = new JavaArrayList[Row]
+    spill.add(row)
+
+    //I think measurePartition size gives us the size of the data already there so we need to kinda
+    //recreate that function and call the utility
+    val size: Int = measurePartitionSize() + CS143Utils.getBytesFromList(spill).size
+    if(size > blockSize)
+    {
+    	spillPartitionToDisk()
+    	//make sure we don't add anything we didn't mean to
+    	data.clear()
+    }
+    //actually insert
+    data.add(row)
+    //this was set to true in spillPartitionToDisk so return it to false
+    writtenToDisk = false
   }
 
   /**
@@ -106,13 +130,43 @@ private[sql] class DiskPartition (
       var byteArray: Array[Byte] = null
 
       override def next() = {
-        // IMPLEMENT ME
-        null
+      	//first just try to advance
+      	if(currentIterator.hasNext)
+      	{
+      		currentIterator.next()
+      	}
+      	//need to read in the next chunk
+      	//use fetch
+      	else
+      	{
+      		//if we can get another chunk advance the iterator
+      		if(fetchNextChunk())
+      		{
+      			//Converts an array of bytes into a JavaArrayList of type [[Row]]
+      			//Then creates an iterator out of it
+      			currentIterator = CS143Utils.getListFromBytes(byteArray).iterator.asScala
+      			currentIterator.next()
+      		}
+      		//there's nothing we can do because we couldn't get another chunk
+      		else
+      		{
+      			null
+      		}
+      	}
       }
 
+      //this is just a bool kinda that look to see if a next exists
       override def hasNext() = {
-        // IMPLEMENT ME
-        false
+      	//first just see if the current has a next
+        if(currentIterator.hasNext)
+        {
+        	true
+        }
+        //chunkSizeIterator looks at the array chunkSize, so see if there's a next there
+        else
+        {
+        	chunkSizeIterator.hasNext
+        }
       }
 
       /**
@@ -122,8 +176,18 @@ private[sql] class DiskPartition (
        * @return true unless the iterator is empty.
        */
       private[this] def fetchNextChunk(): Boolean = {
-        // IMPLEMENT ME
-        false
+        //if there is a next chunk to fetch from, do it
+        if(chunkSizeIterator.hasNext)
+        {
+        	//getNextChunkBytes has inputs: input stream, bytes to read, what we were reading from
+        	CS143Utils.getNextChunkBytes(inStream, chunkSizeIterator.next(), byteArray)
+        	true
+        }
+        else
+        {
+        	false
+        }
+
       }
     }
   }
@@ -136,7 +200,24 @@ private[sql] class DiskPartition (
    * also be closed.
    */
   def closeInput() = {
-    // IMPLEMENT ME
+    //first, if any data has not been written to disk write it
+    //remember we set it back to false after the insert
+    if(!writtenToDisk)
+    {
+    	//if there is any data to write, do it then clear
+    	if(data.size > 0)
+    	{
+    		spillPartitionToDisk()
+    		data.clear()
+    	}
+    	//if there is no data then this should be true
+    	else
+    	{
+    		writtenToDisk = true
+    	}
+    }
+    //now, the output stream should be closed
+    outStream.close()
     inputClosed = true
   }
 
