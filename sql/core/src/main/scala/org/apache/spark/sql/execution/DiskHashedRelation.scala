@@ -184,7 +184,7 @@ private[sql] class DiskPartition (
         if(chunkSizeIterator.hasNext)
         {
         	//getNextChunkBytes has inputs: input stream, bytes to read, what we were reading from
-        	CS143Utils.getNextChunkBytes(inStream, chunkSizeIterator.next(), byteArray)
+        	byteArray = CS143Utils.getNextChunkBytes(inStream, chunkSizeIterator.next(), byteArray)
         	true
         }
         else
@@ -285,7 +285,8 @@ private[sql] object DiskHashedRelation {
     }
 
     //create the DiskHashedRelation and return it
-    val hashedRelation: DiskHashedRelation = new DiskHashedRelation(partitionArray)
+    //compile error using just DiskHashedRelation!
+    val hashedRelation: GeneralDiskHashedRelation = new GeneralDiskHashedRelation(partitionArray)
     hashedRelation
   }
 }
