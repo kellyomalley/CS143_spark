@@ -289,7 +289,7 @@ private[sql] object DiskHashedRelation {
     //compile error using just DiskHashedRelation!
    
 
-    val hashedRelation: DiskHashedRelation = new DiskHashedRelation(partitionArray)
+    val hashedRelation: GeneralDiskHashedRelation = new GeneralDiskHashedRelation(partitionArray)
 
     hashedRelation
   }
