@@ -36,12 +36,16 @@ protected [sql] final class GeneralDiskHashedRelation(partitions: Array[DiskPart
     extends DiskHashedRelation with Serializable {
 
   override def getIterator() = {
-    // IMPLEMENT ME
-    null
+  	//can I just do this?
+    partitions.toIterator
   }
 
   override def closeAllPartitions() = {
-    // IMPLEMENT ME
+    //loop through all the partitions and close them
+    for(part <- partitions)
+    {
+    	part.closePartition()
+    }
   }
 }
 
@@ -254,7 +258,34 @@ private[sql] object DiskHashedRelation {
                 keyGenerator: Projection,
                 size: Int = 64,
                 blockSize: Int = 64000) = {
-    // IMPLEMENT ME
-    null
+    //first, make an array that has all the partitions in it
+    val partitionArray: Array[DiskPartition] = new Array[DiskPartition](size)
+    //now, fill the array with entries -- the number of disk partitions
+    for(x <- 0 to size-1)
+    {
+    	//needs to be initialized with filename and blockSize
+    	partitionArray(x) = new DiskPartition("partition_file_" + x.toString, blockSize)
+    }
+
+    //now iterate through the input and find hash values
+    //insert them into the created partitionArray
+    while(input.hasNext)
+    {
+    	val currRow: Row = input.next()
+    	//spec says using the hash code function and modding by size is enough
+    	val hashVal: Int = keyGenerator.apply(currRow).hashCode() % size
+    	//insert nto the array at the position given by the hash
+    	partitionArray(hashVal).insert(currRow)
+    }
+
+    //now hashing is done but need to clean up
+    for(x <- 0 to size-1)
+    {
+    	partitionArray(x).closeInput
+    }
+
+    //create the DiskHashedRelation and return it
+    val hashedRelation: DiskHashedRelation = new DiskHashedRelation(partitionArray)
+    hashedRelation
   }
 }
