@@ -105,8 +105,27 @@ object CS143Utils {
    * @return
    */
   def getUdfFromExpressions(expressions: Seq[Expression]): ScalaUdf = {
-    // IMPLEMENT ME
-    null
+    //we are given the sequence. Therefore, loop through them and return the last one
+
+    //first, set an expression to null. This will be what is returned. 
+    //if we don't find an expression we will return this null one--good
+    //watch out for val vs. var
+    var uExp: ScalaUdf = null
+
+    //loop through each expression
+    for(exp <- expressions)
+    {
+      //if the expression is a udf, set our return variable to it
+      //no matter what, even if we find a udf, keep looping until the end
+      //we have to return the last one
+      if(exp.isInstanceOf[ScalaUdf])
+      {
+        uExp = exp.asInstanceOf[ScalaUdf]
+      }
+    }
+    //return whatever is in this variable
+    //it will be null if no udf was found, or have the last udf
+    uExp
   }
 
   /**
@@ -188,13 +207,45 @@ object CachingIteratorGenerator {
         val cache: JavaHashMap[Row, Row] = new JavaHashMap[Row, Row]()
 
         def hasNext() = {
-          // IMPLEMENT ME
-          false
+          input.hasNext
         }
 
         def next() = {
-          // IMPLEMENT ME
-          null
+          //first, if there is something next
+          if(input.hasNext)
+          {
+            //need to get the three parts to concatinate
+            //the pre and post will be easy because we're given funcs to get them
+
+            val currRow: Row = input.next()
+
+            //get the key
+            val cKey: Row = cacheKeyProjection.apply(currRow)
+            val evalU: Row = 
+            {
+              //first, the key might not be in the cache
+              if(!cache.containsKey(cKey))
+              {
+                //just put it in and return the projection
+                val proj: Row = udfProject.apply(currRow)
+                cache.put(cKey, proj)
+                proj
+              }
+              else
+              {
+                //otherwise, just return the udf at the location of the key
+                cache.get(cKey)
+              }
+            }
+            
+            //shove it all together
+            Row.fromSeq(preUdfProjection.apply(currRow) ++ evalU ++ postUdfProjection.apply(currRow))
+          }
+          //otherwise, don't return anything
+          else
+          {
+            null
+          }
         }
       }
     }
