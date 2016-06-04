@@ -106,6 +106,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 	
       def hasNext() = {
 	    if(i == null){
+			//if i is empty need next partition
 			fetchNextPartition()
 		}
 		else{
@@ -120,6 +121,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 
       def next() = {
         if(i.hasNext){
+			//hasNext should switch partitions if necessary
 			i.next()
 		}
 		else
@@ -138,6 +140,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
        * @return
        */
       private def fetchNextPartition(): Boolean  = {
+		println("here")
         while(partitionIterator.hasNext)
 		{
 			partition = partitionIterator.next()
