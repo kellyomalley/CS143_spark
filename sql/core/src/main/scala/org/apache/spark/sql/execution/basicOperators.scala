@@ -97,7 +97,6 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
   def generateIterator(input: Iterator[Row]): Iterator[Row] = {
     // This is the key generator for the course-grained external hashing.
     val keyGenerator = CS143Utils.getNewProjection(projectList, child.output)
-	println("here...?")
 	
 
     new Iterator[Row] {
@@ -107,14 +106,16 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 	
       def hasNext() = {
 	    if(i == null){
-			//if i is empty need next partition
+			//if i is null need next partition
 			fetchNextPartition()
 		}
 		else{
+			//If not check to see if i is empty or not
 			if(i.hasNext){
 				i.hasNext
 			}
 			else{
+				//if empty need next partition
 				fetchNextPartition();
 			}
 		}
@@ -141,16 +142,17 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
        * @return
        */
       private def fetchNextPartition(): Boolean  = {
-		println("" + partitionIterator.hasNext)
         while(partitionIterator.hasNext)
 		{
+			//Get next partition
 			partition = partitionIterator.next()
 			
+			//Apply projection
 			cacheIterator = CS143Utils.generateCachingIterator(projectList, child.output)
 			i = cacheIterator(partition.getData())
 			
+			//Make sure partition isnt empty
 			if(i.hasNext){
-				println("any luck")
 				return true
 			}
 		}
