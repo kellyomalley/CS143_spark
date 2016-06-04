@@ -129,7 +129,6 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
       }
 
 	  var partition: DiskPartition = null
-      var cacheGen: (Iterator[Row] => Iterator[Row]) = null
 	  
       /**
        * This fetches the next partition over which we will iterate or returns false if there are no more partitions
@@ -142,8 +141,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 		{
 			partition = partitionIterator.next()
 			
-			cacheGen = CS143Utils.generateCachingIterator(projectList, child.output)
-			i = cacheGen(partition.getData())
+			i = keyGenerator(partition.getData())
 			
 			if(i != null && i.hasNext){
 				true
