@@ -219,7 +219,7 @@ object CachingIteratorGenerator {
 
             val currRow: Row = input.next()
 			
-			val pre: Row = preUdfProjection.apply(row)
+			val pre: Row = preUdfProjection.apply(currRow)
 			
             //get the key
             val cKey: Row = cacheKeyProjection.apply(currRow)
