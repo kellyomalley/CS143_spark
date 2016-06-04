@@ -107,12 +107,13 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
         if(i == null){
 			fetchNextPartition()
 		}
-		
-		if(i.hasNext){
-			i.hasNext
-		}
 		else{
-			fetchNextPartition()
+			if(i.hasNext){
+				i.hasNext
+			}
+			else{
+				fetchNextPartition()
+			}
 		}
       }
 
