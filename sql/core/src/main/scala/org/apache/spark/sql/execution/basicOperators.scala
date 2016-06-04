@@ -141,7 +141,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 		{
 			partition = partitionIterator.next()
 			
-			i = keyGenerator(partition.getData())
+			i = keyGenerator(partition)
 			
 			if(i != null && i.hasNext){
 				true
