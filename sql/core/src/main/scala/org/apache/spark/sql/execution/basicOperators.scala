@@ -100,7 +100,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 
     new Iterator[Row] {
 	  
-	  var i: Iterator[row] = null
+	  var i: Iterator[Row] = null
 	  
 	
       def hasNext() = {
