@@ -218,7 +218,9 @@ object CachingIteratorGenerator {
             //the pre and post will be easy because we're given funcs to get them
 
             val currRow: Row = input.next()
-
+			
+			val pre: Row = preUdfProjection.apply(row)
+			
             //get the key
             val cKey: Row = cacheKeyProjection.apply(currRow)
             val evalU: Row = 
@@ -239,7 +241,7 @@ object CachingIteratorGenerator {
             }
             
             //shove it all together
-            Row.fromSeq(preUdfProjection.apply(currRow) ++ evalU ++ postUdfProjection.apply(currRow))
+            Row.fromSeq(pre ++ evalU ++ postUdfProjection.apply(currRow))
           }
           //otherwise, don't return anything
           else
