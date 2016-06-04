@@ -105,24 +105,20 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 	  
 	
       def hasNext() = {
-        if(i == null){
-			fetchNextPartition()
-		}
-		
-		if(i.hasNext){
-			i.hasNext
-		}
-		else{
-			fetchNextPartition()
-		}
+	    i.hasNext
       }
 
       def next() = {
         if(i.hasNext){
 			i.next()
 		}
-		else{
-			null
+		else
+		{
+			if(!fetchNextPartition)()){
+				null
+			}
+			
+			i
 		}
       }
 
