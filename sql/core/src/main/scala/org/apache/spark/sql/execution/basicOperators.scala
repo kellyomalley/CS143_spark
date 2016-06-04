@@ -150,6 +150,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 			i = cacheIterator(partition.getData())
 			
 			if(i.hasNext){
+				println("any luck")
 				true
 			}
 		}
