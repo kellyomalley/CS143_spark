@@ -105,11 +105,11 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 	
       def hasNext() = {
         if(i == null){
-			return fetchNextPartition()
+			fetchNextPartition()
 		}
 		
 		if(i.hasNext){
-			i.hasNext()
+			i.hasNext
 		}
 		else{
 			fetchNextPartition()
@@ -141,7 +141,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 			partition = partitionIterator.next()
 			
 			cacheGen = CS143Utils.generateCachingIterator(projectList, child.output)
-			i = cacheGenerator(partition.getData())
+			i = cacheGen(partition.getData())
 			
 			if(i.hasNext){
 				true
