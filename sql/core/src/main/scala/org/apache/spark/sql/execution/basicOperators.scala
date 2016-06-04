@@ -141,7 +141,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
        * @return
        */
       private def fetchNextPartition(): Boolean  = {
-		println("here")
+		println("" + partitionIterator.hasNext)
         while(partitionIterator.hasNext)
 		{
 			partition = partitionIterator.next()
