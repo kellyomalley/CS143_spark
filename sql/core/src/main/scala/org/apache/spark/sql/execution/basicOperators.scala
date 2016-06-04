@@ -114,7 +114,7 @@ case class PartitionProject(projectList: Seq[Expression], child: SparkPlan) exte
 		}
 		else
 		{
-			if(!fetchNextPartition)()){
+			if(!fetchNextPartition()){
 				null
 			}
 			
